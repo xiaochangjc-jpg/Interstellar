@@ -90,9 +90,12 @@ app.use(express.urlencoded({ extended: true }));
   setupMasqr(app);
 } */
 
-app.use(express.static(path.join(__dirname, "static")));
+// Serve static files from the static directory
+const staticPath = path.join(__dirname, "static");
+app.use(express.static(staticPath));
 app.use("/ca", cors({ origin: true }));
 
+// Define routes
 const routes = [
   { path: "/b", file: "apps.html" },
   { path: "/a", file: "games.html" },
@@ -102,10 +105,16 @@ const routes = [
   { path: "/", file: "index.html" },
 ];
 
-// biome-ignore lint: idk
+// Setup route handlers
 routes.forEach(route => {
   app.get(route.path, (_req, res) => {
-    res.sendFile(path.join(__dirname, "static", route.file));
+    const filePath = path.join(staticPath, route.file);
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error(`Error sending ${route.file}:`, err);
+        res.status(500).send("Error loading page");
+      }
+    });
   });
 });
 
